@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="style.css"></script>
+    <title>Registro</title>
+</head>
+
+<body>
+
+    <div id="registro" class="stlyeRegistro">
+
+        <span>Nombre:</span><input type="text" id="nombre">
+
+        <span>Apellidos:</span><input type="text" id="apellidos">
+
+        <span>Email:</span><input type="email" id="email">
+
+        <span>Contraseña:</span><input type="password" id="contraseña">
+
+        <span>Valida tu contraseña:</span><input type="password" id="validaContraseña">
+
+        <button type="button" onclick="validarRegistro()">Enviar</button>
+
+    </div>
+
+    <div id="login" class="stlyeLogin">
+
+        <span>Email:</span><input type="email" id="emailLogin">
+
+        <span>Contraseña:</span><input type="password" id="passwordLogin">
+
+        <button type="button" onclick="validarLogin()">Enviar</button>
+
+    </div>
+
+    <div id="links" class="inputLinks">
+
+        <span>Sube tu link:</span><input type="text" id="subirLink">
+
+        <button type="button" onclick="validarLinks()">Subelo</button>
+
+    </div>
+
+    <div id="menuLinks" class="styleMenu">
+
+
+    </div>
+
+
+    <script>
+
+        async function validarRegistro() {
+
+
+            var name = document.getElementById("nombre").value;
+
+            console.log(name);
+
+            var name2 = document.getElementById("apellidos").value;
+
+            console.log(name2);
+
+            var email = document.getElementById("email").value;
+
+            console.log(email);
+
+            var password = document.getElementById("contraseña").value;
+
+            console.log(password);
+
+            var confirmPassword = document.getElementById("validaContraseña").value;
+
+            console.log(confirmPassword);
+
+
+
+
+            if (password == confirmPassword) {
+
+                var postServer = await send_request('POST', "registro.php", "nombre=" + name + "&apellidos=" + name2 + "&email=" + email + "&contraseña=" + password);
+
+            }
+
+
+        }
+
+        async function validarLogin() {
+
+            var loginEmail = document.getElementById("emailLogin").value;
+
+            var loginPassword = document.getElementById("passwordLogin").value;
+
+            console.log(loginPassword);
+
+            var postLogin = await send_request('POST', "login.php", "email=" + loginEmail + "&password=" + loginPassword);
+
+            console.log(postLogin);
+
+            renderizarLinks();
+
+        }
+
+        async function borrarLink(idLink) {
+
+            console.log("text", idLink);
+
+            document.getElementById("menuLinks").innerHTML = "";
+
+            var postDelete = await send_request('POST', "deleteLink.php", "idLink=" + idLink);
+
+            renderizarLinks();
+
+        }
+
+        async function renderizarLinks() {
+
+            var form = document.getElementById("menuLinks");
+
+            form.innerHTML = "";
+
+            var crearH1 = document.createElement("h1");
+
+            var textH1 = document.createTextNode("Links Youtube");
+
+            crearH1.appendChild(textH1);
+
+            form.appendChild(crearH1);
+
+            var serverResponse = await send_request('GET', 'showlinks.php');
+
+            var links = serverResponse.map(i => i);
+
+            console.log("afsda", links);
+
+            for (var i = 0; i < links.length; i++) {
+
+                console.log(links[i]);
+
+                var crearVisualizacion = document.createElement("a");
+
+                var textLink = document.createTextNode(links[i][0]);
+
+                crearVisualizacion.appendChild(textLink);
+
+                form.appendChild(crearVisualizacion);
+
+                crearVisualizacion.setAttribute("href", links[i][0]);
+
+                var eliminarButton = document.createElement("button");
+
+                eliminarButton.setAttribute("onclick", "borrarLink(" + links[i][1] + ")");
+
+                form.appendChild(eliminarButton);
+
+            }
+        }
+
+
+        async function validarLinks() {
+
+            var guardarLink = document.getElementById("subirLink").value;
+
+            console.log(guardarLink);
+
+            var postLink = await send_request('POST', "insertLinks.php", "guardarLink=" + guardarLink);
+
+            renderizarLinks();
+
+            console.log(postLink);
+
+        }
+
+        async function send_request(method, url, body, reg) {
+            var base = 'http://localhost/Ejercicios-Javascript/testingWebb/';
+            return new Promise((resolve, reject) => {
+                fetch(base + url,
+                    {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': reg ? 'multipart/form-data' : 'application/x-www-form-urlencoded'
+                        },
+                        method: "POST",
+                        body: body
+                    })
+                    .then(async function (res) { resolve(await res.json()) })
+                    .catch(function (res) { reject(res) })
+            })
+        }
+
+
+    </script>
+
+</body>
+
+</html>
